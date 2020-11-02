@@ -18,9 +18,9 @@ let csvStream = fastcsv
         return next(null, {
             identificador: row[0],
             nome_usuario: row[1],
-            altura: row[2],
+            altura: row[2].replace(',', '.'),
             lactose: row[3],
-            peso: row[4],
+            peso: row[4].replace(',', '.'),
             atleta: row[5]
         })
     })

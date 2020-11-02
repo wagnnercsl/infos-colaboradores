@@ -1,85 +1,82 @@
 import React, {useState, useEffect} from 'react';
-import { FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiChevronUp, FiChevronDown, FiMoreHorizontal, FiSearch} from 'react-icons/fi';
 import './styles.css';
 import api from '../services/api';
+
+import Table from '../components/Table';
+import formatTable from '../utils/formatTable';
 
 function App() {
 
   const [users, setUsers] = useState([]);
   const [tableHeaders, setTableHeaders] = useState([]);
+  const [filter, setFilter] = useState('');
+  const [registersCount, setRegistersCount] = useState('');
+  const [searchName, setSearchName] = useState('');
 
   useEffect(() => {
     api.get('/')
       .then(response => {
         setUsers(response.data);
-        setTableHeaders(formatTableHeaders(response.data[0]));
-        console.log(users);
+        setTableHeaders(formatTable.formatTableHeaders(response.data[0]));
+        setRegistersCount(response.data.length);
       })
   }, []);
 
-  function formatTableHeaders(objectHeaders) {
-    //console.log(objectHeaders);
-    var keys = Object.keys(objectHeaders);
-    //console.log(keys);
-    var formatted = keys.map(header => {
-      var data = header.replace('_', ' ').toUpperCase();
-      return data;
-    });
-    return formatted;
+  useEffect(() => {
+    getFilteredPerson(filter);
+  }, [filter]);
+
+  function handleChangeSearchName(event) {
+    const actualName = event.target.value;
+    setSearchName(actualName);
   }
 
-  //getUsers();
-  //console.log(Object.keys(users[0]));
+  function orderByName(event) {
+    const orderType = event.target.type;
+      api.get('/', {params: {
+        order: orderType
+      }})
+        .then(response => {
+          setUsers(response.data);
+        });
+  }
+
+  function getFilteredPerson() {
+    api.get('/', {params: {
+      filter
+    }})
+      .then(response => {
+        setUsers(response.data);
+      });
+  }
+
+  function handleChangeFilter(event) {
+    const inputFilter = event.target.value;
+    setFilter(inputFilter);
+}
 
   return (
-    <div className="App">
-
-      <table>
-        <thead>
-          <tr>
-            {
-            tableHeaders.map((tableHeader, index) => (
-            <td key={index}>{tableHeader}</td>
-            ))
-            }
-          </tr>
-        </thead>
-        <tbody>
-          {
-            users.map(user => (
-              <tr key={user.identificador}>
-                <td>
-                  {user.identificador}
-                </td>
-                <td>
-                  {user.nome_usuario}
-                </td>
-                <td>
-                  {user.altura}
-                </td>
-                <td>
-                  {user.lactose ? 'Sim' : 'Não'}
-                </td>
-                <td>
-                  {user.peso}
-                </td>
-                <td>
-                  {user.atleta ? 'Sim' : 'Não'}
-                </td>
-                <td>
-                  <FiEdit2 />
-                </td>
-                <td>
-                  <FiTrash2 />
-                </td>
-              </tr>
-            ))
-            }
-        </tbody>
-      </table>
-
-    </div>
+    <> 
+      <Table users={users} 
+      tableHeaders={tableHeaders} 
+      orderByName={orderByName} 
+      handleChangeFilter={handleChangeFilter}
+      handleChangeSearchName={handleChangeSearchName}
+      registersCount={registersCount}
+      />
+    </>
   );
 }
+
+
+
+/*
+arrows para order by depois
+<td className="chevrons">
+                  <FiChevronUp />
+                  <FiChevronDown />
+                </td>
+*/
 
 export default App;
